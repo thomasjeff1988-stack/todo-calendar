@@ -10,6 +10,13 @@
 <body>
 
   <div class="container">
+
+    <!-- CURRENT DATE AND TIME -->
+    <div class="current-time">
+      <div id="currentDate"></div>
+      <div id="currentTime"></div>
+    </div>
+
     <header>
       <h1>📅 Todo Calendar</h1>
       <p>Plan your tasks by date and time</p>
@@ -37,17 +44,26 @@
       <h2 id="selectedDate">Select a date</h2>
 
       <div class="task-form">
-        <input type="text" id="taskInput" placeholder="Enter a task...">
+        <input
+          type="text"
+          id="taskInput"
+          placeholder="Enter a task..."
+        >
 
-        <input type="time" id="timeInput">
+        <input
+          type="time"
+          id="timeInput"
+        >
 
         <button id="addTask">Add Task</button>
       </div>
 
       <div id="taskList"></div>
     </div>
+
   </div>
 
   <script src="script.js"></script>
+
 </body>
 </html>

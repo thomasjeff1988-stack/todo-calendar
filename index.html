@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Planner — To-Do List &amp; Calendar</title>
+
+<!-- FullCalendar (CDN, no build tools needed) -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ======================= HEADER ======================= -->
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="17" rx="2"/>
+          <path d="M3 9h18M8 2v4M16 2v4"/>
+          <path d="M8 13.5l2.2 2.2L16 10"/>
+        </svg>
+      </span>
+      <div>
+        <h1>Planner</h1>
+        <p class="brand-sub">Tasks &amp; calendar in one place</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button id="notifBtn" class="icon-btn" type="button" title="Enable reminders" aria-label="Enable reminders">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.7 21a2 2 0 0 1-3.4 0"/>
+        </svg>
+      </button>
+      <button id="darkModeToggle" class="icon-btn" type="button" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <svg id="themeIcon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36A5.4 5.4 0 0 1 12 3z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ======================= DASHBOARD STATS ======================= -->
+  <section class="dashboard" aria-label="Task statistics">
+    <div class="stat-card" data-stat="today">
+      <span class="stat-label">Today's Tasks</span>
+      <span class="stat-value" id="statToday">0</span>
+    </div>
+    <div class="stat-card" data-stat="upcoming">
+      <span class="stat-label">Upcoming</span>
+      <span class="stat-value" id="statUpcoming">0</span>
+    </div>
+    <div class="stat-card" data-stat="completed">
+      <span class="stat-label">Completed</span>
+      <span class="stat-value" id="statCompleted">0</span>
+    </div>
+    <div class="stat-card" data-stat="high">
+      <span class="stat-label">High Priority</span>
+      <span class="stat-value" id="statHigh">0</span>
+    </div>
+  </section>
+
+  <!-- ======================= TOOLBAR ======================= -->
+  <section class="toolbar">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" class="search-icon">
+        <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+      </svg>
+      <input type="text" id="searchInput" placeholder="Search tasks by title, description or category…" aria-label="Search tasks" />
+    </div>
+
+    <div class="toolbar-buttons">
+      <button id="addTaskBtn" class="btn btn-primary" type="button">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+        Add Task
+      </button>
+      <button id="exportBtn" class="btn btn-ghost" type="button">Export</button>
+      <label class="btn btn-ghost file-btn">
+        Import
+        <input type="file" id="importInput" accept="application/json" hidden />
+      </label>
+      <button id="clearAllBtn" class="btn btn-danger-ghost" type="button">Clear All</button>
+    </div>
+  </section>
+
+  <!-- ======================= FILTERS ======================= -->
+  <section class="filters" aria-label="Filter tasks">
+    <div class="filter-group">
+      <label for="filterPriority">Priority</label>
+      <select id="filterPriority">
+        <option value="all">All</option>
+        <option value="high">High</option>
+        <option value="medium">Medium</option>
+        <option value="low">Low</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="filterStatus">Status</label>
+      <select id="filterStatus">
+        <option value="all">All</option>
+        <option value="pending">Pending</option>
+        <option value="completed">Completed</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="filterCategory">Category</label>
+      <select id="filterCategory">
+        <option value="all">All</option>
+        <option value="school">School</option>
+        <option value="work">Work</option>
+        <option value="personal">Personal</option>
+        <option value="meeting">Meeting</option>
+        <option value="assignment">Assignment</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- ======================= MAIN LAYOUT ======================= -->
+  <main class="main-layout">
+
+    <!-- Calendar -->
+    <section class="calendar-panel" aria-label="Calendar">
+      <div id="calendar"></div>
+    </section>
+
+    <!-- Task list -->
+    <section class="task-panel" aria-label="Task list">
+      <div class="task-tabs" role="tablist">
+        <button class="task-tab active" data-tab="today" role="tab" aria-selected="true">Today</button>
+        <button class="task-tab" data-tab="upcoming" role="tab" aria-selected="false">Upcoming</button>
+        <button class="task-tab" data-tab="completed" role="tab" aria-selected="false">Completed</button>
+      </div>
+
+      <div class="task-list-wrap">
+        <ul class="task-list" id="taskListToday" data-tabpanel="today"></ul>
+        <ul class="task-list" id="taskListUpcoming" data-tabpanel="upcoming" hidden></ul>
+        <ul class="task-list" id="taskListCompleted" data-tabpanel="completed" hidden></ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>Tasks are saved in this browser's LocalStorage. Reminders only fire while this tab is open — see README for details.</p>
+  </footer>
+
+  <!-- ======================= TASK MODAL ======================= -->
+  <div class="modal-overlay" id="modalOverlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-header">
+        <h2 id="modalTitle">Add Task</h2>
+        <button class="icon-btn" id="modalCloseBtn" type="button" aria-label="Close">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="taskForm" class="modal-body" novalidate>
+        <input type="hidden" id="taskId" />
+
+        <div class="field">
+          <label for="taskTitle">Task title <span class="required">*</span></label>
+          <input type="text" id="taskTitle" required maxlength="120" />
+          <span class="field-error" id="titleError"></span>
+        </div>
+
+        <div class="field">
+          <label for="taskDescription">Description</label>
+          <textarea id="taskDescription" rows="3" maxlength="600"></textarea>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="taskDate">Date <span class="required">*</span></label>
+            <input type="date" id="taskDate" required />
+            <span class="field-error" id="dateError"></span>
+          </div>
+          <div class="field checkbox-field">
+            <label for="taskAllDay">
+              <input type="checkbox" id="taskAllDay" />
+              All-day task
+            </label>
+          </div>
+        </div>
+
+        <div class="field-row" id="timeRow">
+          <div class="field">
+            <label for="taskStartTime">Start time</label>
+            <input type="time" id="taskStartTime" />
+          </div>
+          <div class="field">
+            <label for="taskEndTime">End time</label>
+            <input type="time" id="taskEndTime" />
+          </div>
+        </div>
+        <span class="field-error" id="timeError"></span>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="taskPriority">Priority</label>
+            <select id="taskPriority">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="taskCategory">Category</label>
+            <select id="taskCategory">
+              <option value="school">School</option>
+              <option value="work">Work</option>
+              <option value="personal" selected>Personal</option>
+              <option value="meeting">Meeting</option>
+              <option value="assignment">Assignment</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="taskReminder">Reminder</label>
+          <select id="taskReminder">
+            <option value="0">None</option>
+            <option value="5">5 minutes before</option>
+            <option value="15">15 minutes before</option>
+            <option value="30">30 minutes before</option>
+            <option value="60">1 hour before</option>
+            <option value="1440">1 day before</option>
+          </select>
+        </div>
+
+        <div class="field checkbox-field" id="completedField" hidden>
+          <label for="taskCompleted">
+            <input type="checkbox" id="taskCompleted" />
+            Mark as completed
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-danger-ghost" id="deleteTaskBtn" hidden>Delete Task</button>
+          <div class="modal-actions-right">
+            <button type="button" class="btn btn-ghost" id="cancelTaskBtn">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="saveTaskBtn">Save Task</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================= TOAST / IN-APP NOTIFICATIONS ======================= -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
